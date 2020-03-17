@@ -1,3 +1,4 @@
+import os
 import re
 import numpy as np
 import time
@@ -5,8 +6,25 @@ from selenium import webdriver
 
 from gensim.summarization.summarizer import summarize
 from gensim.summarization import keywords
-from datetime import datetime
+from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
+
+
+def get_file_name(f_nm='news', suffix=''):
+    outpath = 'out'
+    out_dir = './{}/'.format(outpath)
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir, exist_ok=True)
+
+    today_ = datetime.today().strftime('%Y%m%d')
+    if suffix == '':
+        file_nm = '{}_{}.txt'.format(f_nm, today_)
+    else:
+        file_nm = '{}_{}_{}.txt'.format(f_nm, today_, suffix)
+
+    file_nm = os.path.join(out_dir, file_nm)
+
+    return file_nm
 
 
 def get_contents(cdriver, link):
@@ -130,12 +148,12 @@ def get_contents(cdriver, link):
         cdriver.implicitly_wait(t_wait)
         title = cdriver.find_element_by_css_selector('div.area_title>h3').text
         content = cdriver.find_element_by_id('txt_area').text
-    elif root_link == 'www.etoday.co.kr':
-        time.sleep(t_wait)
-        cdriver.get(link)
-        cdriver.implicitly_wait(t_wait)
-        title = cdriver.find_element_by_css_selector('h2.main_title').text
-        content = cdriver.find_element_by_id('articleBody').text
+    # elif root_link == 'www.etoday.co.kr':
+    #     time.sleep(t_wait)
+    #     cdriver.get(link)
+    #     cdriver.implicitly_wait(t_wait)
+    #     title = cdriver.find_element_by_css_selector('h2.main_title').text
+    #     content = cdriver.find_element_by_id('articleBody').text
     elif root_link == 'biz.chosun.com':
         time.sleep(t_wait)
         cdriver.get(link)
@@ -193,7 +211,7 @@ def get_contents(cdriver, link):
     return title, content
 
 
-def google_news_list(cdriver, language='english', keyword='ETF', date='d'):
+def google_news_list(cdriver, language='english', keyword='ETF', date='qdr:d'):
 
     if language == 'english':
         hl = 'en'
@@ -202,7 +220,7 @@ def google_news_list(cdriver, language='english', keyword='ETF', date='d'):
         hl = 'kr'
         lr = 'lang_ko'
     # get google news titles and links
-    url = "https://www.google.com/search?q={keyword}&num=100&start=0&hl={hl}&lr={lr}&as_qdr={date}&tbm=nws".format(
+    url = "https://www.google.com/search?q={keyword}&num=100&start=0&hl={hl}&lr={lr}&tbs={date}&tbm=nws".format(
         keyword=keyword, hl=hl, lr=lr, date=date)
 
     cdriver.get(url)
@@ -224,15 +242,7 @@ def google_news_list(cdriver, language='english', keyword='ETF', date='d'):
     return titles, links
 
 
-def write_file(news_list, language='english'):
-    today_ = datetime.today().strftime('%Y%m%d')
-    if language == 'english':
-        file_nm = 'news_{}_en.txt'.format(today_)
-    elif language == 'korean':
-        file_nm = 'news_{}_kr.txt'.format(today_)
-    else:
-        raise NotImplementedError
-
+def write_file(news_list, file_nm):
     for i, news_summary in enumerate(news_list):
         if i == 0:
             write_mode = 'w'
@@ -249,11 +259,24 @@ def write_file(news_list, language='english'):
     print('{} writed. [n_contents: {}]'.format(file_nm, len(news_list)))
 
 
-def get_link_to_content(cdriver, titles_and_links, word_count=200):
+def get_link_to_content(cdriver, titles_and_links, file_nm=None, word_count=200):
+    if file_nm is not None:
+        if not os.path.exists(file_nm):
+            write_mode = 'w'
+        else:
+            write_mode = 'a'
+
+        f = open(file_nm, write_mode, encoding='utf-8')
+
     titles, links = titles_and_links
     news_list = []
     j = 0
     for i in range(len(links)):
+        if file_nm is not None:
+            f.write("{}\n".format(i))
+            f.write("{}\n".format(titles[i]))
+            f.write("{}\n".format(links[i]))
+
         news_summary = dict()
         news_summary['i'] = i
         news_summary['link'] = links[i]
@@ -263,9 +286,14 @@ def get_link_to_content(cdriver, titles_and_links, word_count=200):
             news_summary['summary'] = summarize(news_summary['content'], word_count=word_count)
             # news_summary['summary'] = summarize(news_summary['content'], ratio=0.05)
             news_list.append(news_summary)
+
+            f.write("{}\n\n".format(news_summary['summary']))
             j += 1
         else:
-            print(" " * len(str(j)), i, titles[i])
+            print(" " * len(str(j)), i, titles[i], links[i])
+
+    if file_nm is not None:
+        f.close()
 
     return news_list
 
@@ -274,18 +302,36 @@ def main():
     cdriver = webdriver.Chrome('d:/chromedriver_win32/chromedriver.exe')
     time.sleep(2)
 
+    today_ = datetime.today().date()
+    if today_.weekday() == 0:
+        ref_date = today_ - timedelta(days=3)
+        date_str = 'cdr%3A1%2Ccd_min%3A{}%2F{}%2F{}%2Ccd_max%3A{}%2F{}%2F{}'.format(ref_date.month, ref_date.day, ref_date.year, today_.month, today_.day, today_.year)
+    else:
+        date_str = 'qdr:d'
+
+
     # english
-    en_titles_and_links = google_news_list(cdriver, language='english')
-    en_news_list = get_link_to_content(cdriver, en_titles_and_links)
-    write_file(en_news_list, language='english')
+    keyword = 'etf'
+    f_nm = 'news_{}'.format(keyword)
+    file_nm = get_file_name(f_nm=f_nm, suffix='us')
+    file_nm_tmp = get_file_name(f_nm=f_nm, suffix='us_tmp')
+    en_titles_and_links = google_news_list(cdriver, language='english', keyword=keyword, date=date_str)
+    en_news_list = get_link_to_content(cdriver, en_titles_and_links, file_nm=file_nm_tmp)
+    write_file(en_news_list, file_nm)
 
     time.sleep(2)
 
     # korean
-    kr_titles_and_links = google_news_list(cdriver, language='korean')
-    kr_news_list = get_link_to_content(cdriver, kr_titles_and_links)
-    write_file(kr_news_list, language='korean')
+    keyword = 'etf'
+    f_nm = 'news_{}'.format(keyword)
+    file_nm = get_file_name(f_nm=f_nm, suffix='kr')
+    file_nm_tmp = get_file_name(f_nm=f_nm, suffix='kr_tmp')
+    kr_titles_and_links = google_news_list(cdriver, language='korean', keyword=keyword, date=date_str)
+    kr_news_list = get_link_to_content(cdriver, kr_titles_and_links, file_nm=file_nm_tmp)
+    write_file(kr_news_list, file_nm)
 
     cdriver.close()
 
 
+if __name__ == '__main__':
+    main()
