@@ -34,177 +34,180 @@ def get_contents(cdriver, link):
     rex = re.compile(pattern)
 
     root_link = rex.search(link).group()
+    try:
+        if root_link == 'www.etftrends.com':
+            time.sleep(t_wait)
+            cdriver.get(link)
+            cdriver.implicitly_wait(t_wait)
+            result = cdriver.find_element_by_css_selector('div.alm-reveal')
+            assert result.get_attribute('data-page') == '0'
+            title = result.get_attribute('data-title')
+            content = result.find_element_by_class_name('post-content').text
 
-    if root_link == 'www.etftrends.com':
-        time.sleep(t_wait)
-        cdriver.get(link)
-        cdriver.implicitly_wait(t_wait)
-        result = cdriver.find_element_by_css_selector('div.alm-reveal')
-        assert result.get_attribute('data-page') == '0'
-        title = result.get_attribute('data-title')
-        content = result.find_element_by_class_name('post-content').text
+        elif root_link == 'www.etfstream.com':
+            time.sleep(t_wait)
+            cdriver.get(link)
+            cdriver.implicitly_wait(t_wait)
+            results = cdriver.find_element_by_tag_name('article')
+            title = results.find_element_by_css_selector('h1.entry-title').text
+            content = results.find_element_by_css_selector('div.entry-content').text
 
-    elif root_link == 'www.etfstream.com':
-        time.sleep(t_wait)
-        cdriver.get(link)
-        cdriver.implicitly_wait(t_wait)
-        results = cdriver.find_element_by_tag_name('article')
-        title = results.find_element_by_css_selector('h1.entry-title').text
-        content = results.find_element_by_css_selector('div.entry-content').text
+        elif root_link == 'www.nasdaq.com':
+            title = None
+            content = None
+        elif root_link == 'seekingalpha.com':
+            title = None
+            content = None
+        elif root_link == 'etfdailynews.com':
+            title = None
+            content = None
+        elif root_link == 'www.zacks.com':
+            title = None
+            content = None
+        # elif root_link == 'www.marketwatch.com':
+        #     cdriver.get(link)
+        #     cdriver.implicitly_wait(3)
+        #     title = cdriver.find_element_by_id('article-headline').text
+        #     content = cdriver.find_element_by_id('article-body').text
+        elif root_link == 'www.etf.com':
+            title = None
+            content = None
+        elif root_link == 'etfdb.com':
+            time.sleep(t_wait)
+            cdriver.get(link)
+            cdriver.implicitly_wait(t_wait)
+            title = cdriver.find_element_by_css_selector('h2.media-heading').text
+            content = cdriver.find_element_by_css_selector('div.article__textile-block:not(.article__intro)').text
+        elif root_link == 'finance.yahoo.com':
+            title = None
+            content = None
+        elif root_link == 'www.investors.com':
+            title = None
+            content = None
+        elif root_link == 'www.cnbc.com':
+            title = None
+            content = None
 
-    elif root_link == 'www.nasdaq.com':
-        title = None
-        content = None
-    elif root_link == 'seekingalpha.com':
-        title = None
-        content = None
-    elif root_link == 'etfdailynews.com':
-        title = None
-        content = None
-    elif root_link == 'www.zacks.com':
-        title = None
-        content = None
-    # elif root_link == 'www.marketwatch.com':
-    #     cdriver.get(link)
-    #     cdriver.implicitly_wait(3)
-    #     title = cdriver.find_element_by_id('article-headline').text
-    #     content = cdriver.find_element_by_id('article-body').text
-    elif root_link == 'www.etf.com':
-        title = None
-        content = None
-    elif root_link == 'etfdb.com':
-        time.sleep(t_wait)
-        cdriver.get(link)
-        cdriver.implicitly_wait(t_wait)
-        title = cdriver.find_element_by_css_selector('h2.media-heading').text
-        content = cdriver.find_element_by_css_selector('div.article__textile-block:not(.article__intro)').text
-    elif root_link == 'finance.yahoo.com':
-        title = None
-        content = None
-    elif root_link == 'www.investors.com':
-        title = None
-        content = None
-    elif root_link == 'www.cnbc.com':
-        title = None
-        content = None
-
-    # KOREAN NEWS
-    elif root_link == 'www.ezyeconomy.com':
-        time.sleep(t_wait)
-        cdriver.get(link)
-        cdriver.implicitly_wait(t_wait)
-        title = cdriver.find_element_by_css_selector('div.article-head-title').text
-        content = cdriver.find_element_by_id('article-view-content-div').text
-    elif root_link == 'www.thebell.co.kr':
-        time.sleep(t_wait)
-        cdriver.get(link)
-        cdriver.implicitly_wait(t_wait)
-        title = cdriver.find_element_by_css_selector('p.tit').text
-        content = cdriver.find_element_by_id('article-main').text
-    elif root_link == 'www.mk.co.kr':
-        time.sleep(t_wait)
-        cdriver.get(link)
-        cdriver.implicitly_wait(t_wait)
-        title = cdriver.find_element_by_css_selector('h1.top_title').text
-        content = cdriver.find_element_by_css_selector('div.art_txt').text
-    elif root_link == 'biz.heraldcorp.com':
-        time.sleep(t_wait)
-        cdriver.get(link)
-        cdriver.implicitly_wait(t_wait)
-        title = cdriver.find_element_by_tag_name('h1').text
-        content = cdriver.find_element_by_id('articleText').text
-    elif root_link == 'www.hankyung.com':
-        time.sleep(t_wait)
-        cdriver.get(link)
-        cdriver.implicitly_wait(t_wait)
-        title = cdriver.find_element_by_css_selector('h1.title').text
-        content = cdriver.find_element_by_id('articletxt').text
-    elif root_link == 'www.seoul.co.kr':
-        time.sleep(t_wait)
-        cdriver.get(link)
-        cdriver.implicitly_wait(t_wait)
-        title = cdriver.find_element_by_css_selector('h1.atit2').text
-        content = cdriver.find_element_by_css_selector('div.v_article').text
-    elif root_link == 'www.seoulfn.com':
-        time.sleep(t_wait)
-        cdriver.get(link)
-        cdriver.implicitly_wait(t_wait)
-        title = cdriver.find_element_by_css_selector('div.article-head-title').text
-        content = cdriver.find_element_by_id('article-view-content-div').text
-    # elif root_link == 'www.fntimes.com':
-    #     cdriver.get(link)
-    #     cdriver.implicitly_wait(3)
-    #     title = cdriver.find_element_by_tag_name('h2').text
-    #     content = cdriver.find_element_by_css_selector('div.vcon_con_intxt').text
-    elif root_link == 'www.edaily.co.kr':
-        time.sleep(t_wait)
-        cdriver.get(link)
-        cdriver.implicitly_wait(t_wait)
-        title = cdriver.find_element_by_css_selector('div.news_titles>h2').text
-        content = cdriver.find_element_by_css_selector('div.news_body').text
-    elif root_link == 'www.asiae.co.kr':
-        time.sleep(t_wait)
-        cdriver.get(link)
-        cdriver.implicitly_wait(t_wait)
-        title = cdriver.find_element_by_css_selector('div.area_title>h3').text
-        content = cdriver.find_element_by_id('txt_area').text
-    # elif root_link == 'www.etoday.co.kr':
-    #     time.sleep(t_wait)
-    #     cdriver.get(link)
-    #     cdriver.implicitly_wait(t_wait)
-    #     title = cdriver.find_element_by_css_selector('h2.main_title').text
-    #     content = cdriver.find_element_by_id('articleBody').text
-    elif root_link == 'biz.chosun.com':
-        time.sleep(t_wait)
-        cdriver.get(link)
-        cdriver.implicitly_wait(t_wait)
-        title = cdriver.find_element_by_id('news_title_text_id').text
-        content = cdriver.find_element_by_css_selector('div.par').text
-    elif root_link == 'www.fnnews.com':
-        time.sleep(t_wait)
-        cdriver.get(link)
-        cdriver.implicitly_wait(t_wait)
-        title = cdriver.find_element_by_css_selector('h1.mg').text
-        content = cdriver.find_element_by_id('article_content').text
-    elif root_link == 'www.econovill.com':
-        title = None
-        content = None
-    elif root_link == 'www.sedaily.com':
-        time.sleep(t_wait)
-        cdriver.get(link)
-        cdriver.implicitly_wait(t_wait)
-        title = cdriver.find_element_by_tag_name('h2').text
-        content = cdriver.find_element_by_css_selector('div.view_con').text
-    elif root_link == 'www.newspim.com':
-        time.sleep(t_wait)
-        cdriver.get(link)
-        cdriver.implicitly_wait(t_wait)
-        title = cdriver.find_element_by_css_selector('div.bodynews_title>h1').text
-        content = cdriver.find_element_by_id('news_contents').text
-    # elif root_link == 'news.mt.co.kr':
-    #     cdriver.get(link)
-    #     cdriver.implicitly_wait(t_wait)
-    #     title = cdriver.find_element_by_css_selector('h1.subject').text
-    #     content = cdriver.find_element_by_id('article-view-content-div').text
-    elif root_link == 'www.datanet.co.kr':
-        time.sleep(t_wait)
-        cdriver.get(link)
-        cdriver.implicitly_wait(t_wait)
-        title = cdriver.find_element_by_css_selector('div.article-head-title').text
-        content = cdriver.find_element_by_id('textBody').text
-    elif root_link == 'news.joins.com':
-        time.sleep(t_wait)
-        cdriver.get(link)
-        cdriver.implicitly_wait(t_wait)
-        title = cdriver.find_element_by_id('article_title').text
-        content = cdriver.find_element_by_id('article_body').text
-    elif root_link == 'www.it-b.co.kr':
-        time.sleep(t_wait)
-        cdriver.get(link)
-        cdriver.implicitly_wait(t_wait)
-        title = cdriver.find_element_by_css_selector('div.article-head-title').text
-        content = cdriver.find_element_by_id('article-view-content-div').text
-    else:
+        # KOREAN NEWS
+        elif root_link == 'www.ezyeconomy.com':
+            time.sleep(t_wait)
+            cdriver.get(link)
+            cdriver.implicitly_wait(t_wait)
+            title = cdriver.find_element_by_css_selector('div.article-head-title').text
+            content = cdriver.find_element_by_id('article-view-content-div').text
+        elif root_link == 'www.thebell.co.kr':
+            time.sleep(t_wait)
+            cdriver.get(link)
+            cdriver.implicitly_wait(t_wait)
+            title = cdriver.find_element_by_css_selector('p.tit').text
+            content = cdriver.find_element_by_id('article-main').text
+        elif root_link == 'www.mk.co.kr':
+            time.sleep(t_wait)
+            cdriver.get(link)
+            cdriver.implicitly_wait(t_wait)
+            title = cdriver.find_element_by_css_selector('h1.top_title').text
+            content = cdriver.find_element_by_css_selector('div.art_txt').text
+        elif root_link == 'biz.heraldcorp.com':
+            time.sleep(t_wait)
+            cdriver.get(link)
+            cdriver.implicitly_wait(t_wait)
+            title = cdriver.find_element_by_tag_name('h1').text
+            content = cdriver.find_element_by_id('articleText').text
+        elif root_link == 'www.hankyung.com':
+            time.sleep(t_wait)
+            cdriver.get(link)
+            cdriver.implicitly_wait(t_wait)
+            title = cdriver.find_element_by_css_selector('h1.title').text
+            content = cdriver.find_element_by_id('articletxt').text
+        elif root_link == 'www.seoul.co.kr':
+            time.sleep(t_wait)
+            cdriver.get(link)
+            cdriver.implicitly_wait(t_wait)
+            title = cdriver.find_element_by_css_selector('h1.atit2').text
+            content = cdriver.find_element_by_css_selector('div.v_article').text
+        elif root_link == 'www.seoulfn.com':
+            time.sleep(t_wait)
+            cdriver.get(link)
+            cdriver.implicitly_wait(t_wait)
+            title = cdriver.find_element_by_css_selector('div.article-head-title').text
+            content = cdriver.find_element_by_id('article-view-content-div').text
+        # elif root_link == 'www.fntimes.com':
+        #     cdriver.get(link)
+        #     cdriver.implicitly_wait(3)
+        #     title = cdriver.find_element_by_tag_name('h2').text
+        #     content = cdriver.find_element_by_css_selector('div.vcon_con_intxt').text
+        elif root_link == 'www.edaily.co.kr':
+            time.sleep(t_wait)
+            cdriver.get(link)
+            cdriver.implicitly_wait(t_wait)
+            title = cdriver.find_element_by_css_selector('div.news_titles>h2').text
+            content = cdriver.find_element_by_css_selector('div.news_body').text
+        elif root_link == 'www.asiae.co.kr':
+            time.sleep(t_wait)
+            cdriver.get(link)
+            cdriver.implicitly_wait(t_wait)
+            title = cdriver.find_element_by_css_selector('div.area_title>h3').text
+            content = cdriver.find_element_by_id('txt_area').text
+        # elif root_link == 'www.etoday.co.kr':
+        #     time.sleep(t_wait)
+        #     cdriver.get(link)
+        #     cdriver.implicitly_wait(t_wait)
+        #     title = cdriver.find_element_by_css_selector('h2.main_title').text
+        #     content = cdriver.find_element_by_id('articleBody').text
+        elif root_link == 'biz.chosun.com':
+            time.sleep(t_wait)
+            cdriver.get(link)
+            cdriver.implicitly_wait(t_wait)
+            title = cdriver.find_element_by_id('news_title_text_id').text
+            content = cdriver.find_element_by_css_selector('div.par').text
+        elif root_link == 'www.fnnews.com':
+            time.sleep(t_wait)
+            cdriver.get(link)
+            cdriver.implicitly_wait(t_wait)
+            title = cdriver.find_element_by_css_selector('h1.mg').text
+            content = cdriver.find_element_by_id('article_content').text
+        elif root_link == 'www.econovill.com':
+            title = None
+            content = None
+        elif root_link == 'www.sedaily.com':
+            time.sleep(t_wait)
+            cdriver.get(link)
+            cdriver.implicitly_wait(t_wait)
+            title = cdriver.find_element_by_tag_name('h2').text
+            content = cdriver.find_element_by_css_selector('div.view_con').text
+        elif root_link == 'www.newspim.com':
+            time.sleep(t_wait)
+            cdriver.get(link)
+            cdriver.implicitly_wait(t_wait)
+            title = cdriver.find_element_by_css_selector('div.bodynews_title>h1').text
+            content = cdriver.find_element_by_id('news_contents').text
+        # elif root_link == 'news.mt.co.kr':
+        #     cdriver.get(link)
+        #     cdriver.implicitly_wait(t_wait)
+        #     title = cdriver.find_element_by_css_selector('h1.subject').text
+        #     content = cdriver.find_element_by_id('article-view-content-div').text
+        elif root_link == 'www.datanet.co.kr':
+            time.sleep(t_wait)
+            cdriver.get(link)
+            cdriver.implicitly_wait(t_wait)
+            title = cdriver.find_element_by_css_selector('div.article-head-title').text
+            content = cdriver.find_element_by_id('textBody').text
+        elif root_link == 'news.joins.com':
+            time.sleep(t_wait)
+            cdriver.get(link)
+            cdriver.implicitly_wait(t_wait)
+            title = cdriver.find_element_by_id('article_title').text
+            content = cdriver.find_element_by_id('article_body').text
+        elif root_link == 'www.it-b.co.kr':
+            time.sleep(t_wait)
+            cdriver.get(link)
+            cdriver.implicitly_wait(t_wait)
+            title = cdriver.find_element_by_css_selector('div.article-head-title').text
+            content = cdriver.find_element_by_id('article-view-content-div').text
+        else:
+            title = None
+            content = None
+    except Exception:
         title = None
         content = None
 
@@ -281,8 +284,10 @@ def get_link_to_content(cdriver, titles_and_links, file_nm=None, word_count=200)
         news_summary['i'] = i
         news_summary['link'] = links[i]
         news_summary['title'], news_summary['content'] = get_contents(cdriver, links[i])
+
+        print_title = titles[i].encode('utf-8').decode('utf-8')
         if news_summary['title'] is not None:
-            print(j, i, titles[i], links[i])
+            print(j, i, print_title, links[i])
             news_summary['summary'] = summarize(news_summary['content'], word_count=word_count)
             # news_summary['summary'] = summarize(news_summary['content'], ratio=0.05)
             news_list.append(news_summary)
@@ -290,7 +295,7 @@ def get_link_to_content(cdriver, titles_and_links, file_nm=None, word_count=200)
             f.write("{}\n\n".format(news_summary['summary']))
             j += 1
         else:
-            print(" " * len(str(j)), i, titles[i], links[i])
+            print(" " * len(str(j)), i, print_title, links[i])
 
     if file_nm is not None:
         f.close()
