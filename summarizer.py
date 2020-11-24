@@ -229,15 +229,15 @@ def google_news_list(cdriver, language='english', keyword='ETF', date='qdr:d'):
     cdriver.get(url)
     cdriver.implicitly_wait(3)
 
-    results = cdriver.find_elements_by_css_selector('div.g')
+    results = cdriver.find_elements_by_tag_name('g-card')
     time.sleep(5)
 
     links = []
     titles = []
     for i in range(len(results)):
-        content_div = results[i].find_element_by_css_selector('h3.r').find_element_by_tag_name('a')
+        content_div = results[i].find_element_by_class_name('dbsr').find_element_by_tag_name('a')
         link = content_div.get_attribute('href')
-        title = content_div.text
+        title = content_div.find_element_by_css_selector("div[role='heading']").text
 
         links.append(link)
         titles.append(title)
