@@ -19,15 +19,15 @@ parser.add_argument('--filedir', default='./out/naver_news', type=str)
 
 def get_date_list(begin_d=None, end_d=None):
     if begin_d is None:
-        begin_d = (datetime.datetime.now()+datetime.timedelta(-2)).strftime('%Y-%m-%d')
+        begin_d = (datetime.datetime.now()+datetime.timedelta(-2)).strftime('%Y%m%d')
 
     if end_d is None:
-        end_d = (datetime.datetime.now()+datetime.timedelta(1)).strftime('%Y-%m-%d')
+        end_d = (datetime.datetime.now()+datetime.timedelta(1)).strftime('%Y%m%d')
 
     days_range = []
 
-    start = datetime.datetime.strptime(begin_d, "%Y-%m-%d")
-    end = datetime.datetime.strptime(end_d, "%Y-%m-%d") # 범위 + 1
+    start = datetime.datetime.strptime(begin_d, "%Y%m%d")
+    end = datetime.datetime.strptime(end_d, "%Y%m%d") # 범위 + 1
     date_generated = [start + datetime.timedelta(days=x) for x in range(0, (end-start).days)]
 
     for date in date_generated:
@@ -172,7 +172,7 @@ def scrap_news(cdriver, articles_meta, filedir='./out/naver_news', test=False):
 
 def main(args):
 
-    cdriver = webdriver.Chrome('d:/chromedriver_win32/chromedriver.exe')
+    cdriver = webdriver.Chrome('C:/chromedriver.exe')
     time.sleep(2)
 
     # dictionary: key=news_id | value=[title, link]
