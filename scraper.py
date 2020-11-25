@@ -1,6 +1,6 @@
 # python scraper.py --begin_d=20201101 --end_d=20201126
 
-
+import platform
 import argparse
 import os
 import random
@@ -18,7 +18,7 @@ parser.add_argument('--end_d', default=None, type=str)
 parser.add_argument('--test', default=False, type=bool)
 parser.add_argument('--filedir', default='./out/naver_news', type=str)
 parser.add_argument('--metadir', default='./out/naver_news/meta', type=str)
-
+parser.add_argument('--chrome_driver_path', default='d:/chromedriver_win32/chromedriver.exe', type=str)
 
 class TestArgs:
     begin_d = None
@@ -222,7 +222,19 @@ def scrap_news(cdriver, metadir='./out/naver_news/meta', filedir='./out/naver_ne
 
 def main(args):
     # args = TestArgs()
-    cdriver = webdriver.Chrome('C:/chromedriver.exe')
+    if platform.system().lower() == 'windows':
+        path = args.chrome_driver_path
+        
+    elif platform.system().lower() == 'linux':
+        from pyvirtualdisplay import Display
+        display = Display(visible=0, size(1024, 768))
+        display.start()
+        path = '/home/ubuntu/chromedriver'
+    else:
+        print("chrome driver not found (platform: {})".format(platform.system()))
+        return 0
+
+    cdriver = webdriver.Chrome(path)
     time.sleep(2)
 
     if not os.path.exists(args.filedir):
