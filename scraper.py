@@ -20,7 +20,7 @@ parser.add_argument('--test', default=False, type=bool)
 parser.add_argument('--filedir', default='./out/naver_news', type=str)
 parser.add_argument('--metadir', default='./out/naver_news/meta', type=str)
 parser.add_argument('--source', default='press', type=str, choices=['press', 'category'])
-parser.add_argument('--chrome_driver_path', default='d:/chromedriver_win32/chromedriver.exe', type=str)
+parser.add_argument('--driver_path', default='d:/chromedriver_win32/chromedriver.exe', type=str)
 
 
 class TestArgs:
@@ -29,7 +29,7 @@ class TestArgs:
     test = True
     filedir = './out/naver_news'
     metadir = './out/naver_news/meta'
-    chrome_driver_path = 'd:/chromedriver_win32/chromedriver.exe'
+    driver_path = 'd:/chromedriver_win32/chromedriver.exe'
     source = 'press'
 
 
@@ -413,6 +413,8 @@ def scrap_news(cdriver, metadir='./out/naver_news/meta', filedir='./out/naver_ne
     st_total = time.time()
     for meta_file in meta_list:
         st_meta = time.time()
+        if meta_file.split('.')[-1] != 'json':
+            continue
 
         date_ = ''.join(re.findall('[0-9]', meta_file))
 
@@ -472,7 +474,7 @@ def scrap_news(cdriver, metadir='./out/naver_news/meta', filedir='./out/naver_ne
 def main(args):
     # args = TestArgs()
     if platform.system().lower() == 'windows':
-        path = args.chrome_driver_path
+        path = args.driver_path
         
     elif platform.system().lower() == 'linux':
         from pyvirtualdisplay import Display

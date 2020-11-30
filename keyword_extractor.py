@@ -1,8 +1,10 @@
 import json
 import os
+import numpy as np
 import re
 import string
 import heapq
+from collections import defaultdict
 from soynlp.noun import LRNounExtractor
 from soykeyword.proportion import CorpusbasedKeywordExtractor
 from wordcloud import WordCloud
@@ -60,7 +62,6 @@ def make_corpus(begin_d=None, end_d=None, sections: list = None):
             continue
 
         _, date_, ext = splitted
-
         if date_ >= begin_d and date_ <= end_d:
             news_list.append(news_file)
 
@@ -73,7 +74,7 @@ def make_corpus(begin_d=None, end_d=None, sections: list = None):
     for id, info in corpus_raw.items():
         # content = re.sub(pattern, '', info['content'])
 
-        if len(sections) >= 1 and info['class'] != sections:
+        if len(sections) >= 1 and info['class'] not in sections:
             continue
 
         content = info['content']
@@ -167,15 +168,36 @@ def extract_keywords(keyword, keyword_extractor, nouns, min_score=0.8, min_frequ
 
 
 def test():
-    begin_d = '20200701'
+    # begin_d = '20200701'
+    begin_d = '20201101'
     end_d = None
-    sections = list()      # ['IT', '경제', '사회', '생활', '세계', '오피니언', '정치']
+    sections = ['IT', '경제']    # ['IT', '경제', '사회', '생활', '세계', '오피니언', '정치']
     keyword_extractor, nouns = train_extractor(begin_d=begin_d, end_d=end_d, sections=sections)
 
+    keyword_dict = defaultdict(list)
+    keyword_list = ['미국']
+    for keyword in keyword_list:
+        keyword_tuples, keywords_str = extract_keywords(keyword=keyword, keyword_extractor=keyword_extractor, nouns=nouns,
+                                    min_frequency=5, min_score=0.7)
 
-    keyword = '윤석열'
-    keywords, keywords_str = extract_keywords(keyword=keyword, keyword_extractor=keyword_extractor, nouns=nouns,
-                                min_frequency=10, min_score=0.6)
+        for keyword_tuple in keyword_tuples:
+            score_, name_, freq_, noun_score_ = keyword_tuple
+            keyword_dict[name_].append(keyword_tuple)
 
-    for i in range(len(keywords_str)):
-        print(keywords_str[i])
+    new_scores = []
+    for key, val_list in keyword_dict.items():
+        n_match = len(val_list)
+        new_score = n_match + np.mean([val[0] * 3 + np.log(max(val[2], 20)) + val[3] for val in val_list])
+        new_scores.append([-new_score, n_match, key])
+
+    heapq.heapify(new_scores)
+
+    for i in range(len(new_scores)):
+        if i < 0:
+            heapq.heappop(new_scores)
+            continue
+        else:
+            print(heapq.heappop(new_scores))
+
+        if i == 50:
+            break
