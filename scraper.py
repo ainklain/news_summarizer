@@ -19,7 +19,7 @@ parser.add_argument('--end_d', default=None, type=str)
 parser.add_argument('--test', default=False, type=bool)
 parser.add_argument('--filedir', default='./out/naver_news', type=str)
 parser.add_argument('--metadir', default='./out/naver_news/meta', type=str)
-parser.add_argument('--source', default='press', type=str, choices=['press', 'category'])
+parser.add_argument('--source', default='all', type=str, choices=['press', 'category', 'all', 'skip'])
 parser.add_argument('--driver_path', default='d:/chromedriver_win32/chromedriver.exe', type=str)
 
 
@@ -496,9 +496,13 @@ def main(args):
         print('meta start')
         if args.source == 'press':
             get_articles_meta_press(cdriver, begin_d=args.begin_d, end_d=args.end_d, metadir=args.metadir, test=args.test)
-
         elif args.source == 'category':
             get_articles_meta_category(cdriver, begin_d=args.begin_d, end_d=args.end_d, metadir=args.metadir, test=args.test)
+        elif args.source == 'all':
+            get_articles_meta_press(cdriver, begin_d=args.begin_d, end_d=args.end_d, metadir=args.metadir, test=args.test)
+            get_articles_meta_category(cdriver, begin_d=args.begin_d, end_d=args.end_d, metadir=args.metadir, test=args.test)
+        elif args.source == 'skip':
+            pass
         else:
             raise KeyError
         print('meta done')
