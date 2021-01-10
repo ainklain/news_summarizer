@@ -128,16 +128,22 @@ def get_url_category(date_, sid1, sid2=None, page=1):
         base_url=base_url, mode=mode, mid="sec", listType="title", date_=date_, sid1=sid1, sid2=sid2, page=page)
 
 
-def get_url_keyword(date_, keyword, page):
+def get_url_keyword(date1, date2, keyword, page):
     """where=news&query=etf&sm=tab_pge&sort=0&photo=0&field=0&reporter_article=&pd=3&ds=2020.11.17&de=2020.11.17&docid=&nso=so:r,p:from20201117to20201117,a:all&mynews=0&cluster_rank=24&start=11&refresh_start=0
+    where=news&query=etf&sm=tab_pge&sort=0&photo=3&field=0&reporter_article=&pd=3&ds=2020.11.17&de=2020.11.17&docid=&nso=so:r,p:from20201117to20201117,a:all&mynews=0&cluster_rank=24&start=11&refresh_start=0
+    pd: 날짜 관련 (날짜선택: 3인듯? => &pd=3&ds=2018.01.02&de=2018.01.17)
+    sm: tab_opt=디폴트 / tab_srt=선택 / tab_pge=페이지선택 & sort=0: 관련도 / 1: 최신 / 2: 오래된 (=> sm=tab_pge&sort=0)
+    photo: 0=전체 / 1=포토 / 3=지면기사
     """
-    date2 = ".".join([date_[:4], date_[4:6], date_[6:]])    # yyyy.mm.dd format
+
+    _date1 = ".".join([date1[:4], date1[4:6], date1[6:]])    # yyyy.mm.dd format
+    _date2 = ".".join([date2[:4], date2[4:6], date2[6:]])  # yyyy.mm.dd format
     start_ = str((int(page)-1) * 10 + 1)
     base_url = "https://search.naver.com/search.naver"
-    url = "{base_url}?&where=news&query={keyword}&sm=tab_pge&sort=0&photo=0&field=0&reporter_article=&pd=3".format(
+    url = "{base_url}?&where=news&query={keyword}&sm=tab_pge&sort=0&photo=3&field=0&reporter_article=&pd=3".format(
         base_url=base_url, keyword=keyword)
-    url += "&ds={date2}&de={date2}&docid=&nso=so:r,p:from{date_}to{date_},a:all&mynews=0&cluster_rank=24&start={start_}&refresh_start=0".format(
-        date2=date2, date_=date_, start_=start_)
+    url += "&ds={_date1}&de={_date2}&docid=&nso=so:r,p:from{date1}to{date2},a:all&mynews=0&cluster_rank=24&start={start_}&refresh_start=0".format(
+        _date1=_date1, _date2=_date2, date1=date1, date2=date2, start_=start_)
     return url
 
 
@@ -182,12 +188,12 @@ def get_articles_meta_press(cdriver, begin_d=None, end_d=None, metadir='./out/na
                 a_list = page.find_elements_by_tag_name('a')
                 for a in a_list:
                     url = a.get_attribute('href')
-                    id = url.split('aid=')[1]
+                    id_ = url.split('aid=')[1]
                     title = a.text
-                    if id in articles_meta.keys():
+                    if id_ in articles_meta.keys():
                         continue
 
-                    articles_meta[id] = {'title': title,
+                    articles_meta[id_] = {'title': title,
                                         'url': url,
                                         'date': date_,
                                         'from': press_name}
@@ -275,17 +281,17 @@ def get_articles_meta_category(cdriver, begin_d=None, end_d=None, metadir='./out
                     for li in li_list:
                         a = li.find_element_by_tag_name('a')
                         url = a.get_attribute('href')
-                        id = url.split('aid=')[1]
+                        id_ = url.split('aid=')[1]
                         title = a.text
                         from_ = li.find_element_by_class_name('writing').text
-                        if id in articles_meta.keys():  # 중복뉴스 제거
+                        if id_ in articles_meta.keys():  # 중복뉴스 제거
                             continue
 
                         pattern = re.compile("[[].*[]]")
                         if len(pattern.findall(title)) >= 1:    # 인사|포토|속보|표 등 제거
                             continue
 
-                        articles_meta[id] = {'title': title,
+                        articles_meta[id_] = {'title': title,
                                             'url': url,
                                             'date': date_,
                                             'from': from_,
@@ -317,84 +323,68 @@ def get_articles_meta_keyword(cdriver, keyword, begin_d=None, end_d=None, metadi
     oid: 언론사 코드
     listType: paper=신문게재기사만 title=제목형 summary=요약형 photo=포토만
     """
-    date_list = get_date_list(begin_d, end_d)
 
     if not os.path.exists(metadir):
         os.makedirs(metadir)
 
     st_total = time.time()
-    for date_ in date_list:
-        s_t = time.time()
-        time.sleep((0.2 + random.random()) * 3)
 
-        metapath = os.path.join(metadir, 'meta-keyword-{}_{}.json'.format(keyword, date_))
-        if os.path.exists(metapath):
-            with open(metapath, 'rb') as f:
-                articles_meta = json.load(f)
-            print("[already exist] date={} | total_file={}".format(date_, len(articles_meta)))
-            continue
-        else:
-            articles_meta = dict()
-            print("date={} begin".format(date_))
+    s_t = time.time()
+    time.sleep((0.2 + random.random()) * 3)
 
-        cur_page = 1
-        while True:
-            if cur_page > 50:
-                break
+    metapath = os.path.join(metadir, 'meta-keyword-{}_{}~{}.json'.format(keyword, begin_d, end_d))
+    if os.path.exists(metapath):
+        with open(metapath, 'rb') as f:
+            articles_meta = json.load(f)
+        print("[already exist] date={}~{} | total_file={}".format(begin_d, end_d, len(articles_meta)))
 
-            url = get_url_keyword(date_, keyword=keyword, page=cur_page)
+    else:
+        articles_meta = dict()
+        print("date={}~{} begin".format(begin_d, end_d))
 
-            cdriver.get(url)
-            cdriver.implicitly_wait(10)
+    stop_next = False
+    for page_num in range(1, 401):
+        if stop_next:
+            break
 
-            btn_next = cdriver.find_element_by_class_name('btn_next')
-            if btn_next.get_attribute('aria-disabled') == 'false':
-                exist_next_page = True
-            else:
-                exist_next_page = False
+        url = get_url_keyword(keyword='etf', date1=begin_d, date2=end_d, page=page_num)
 
+        cdriver.get(url)
+        cdriver.implicitly_wait(10)
 
+        btn_next = cdriver.find_element_by_class_name('btn_next')
+        if btn_next.get_attribute('aria-disabled') == 'true':
+            stop_next = True
 
-            pages = cdriver.find_elements_by_class_name('news_area')
-            for page in pages:
-                page.find_element_by_class_name('news_info').find_element_by_tag_name('a')
-                page.find_element_by_class_name('press').text
-                page.find_element_by_css_selector('a.press').text
+        pages = cdriver.find_elements_by_class_name('news_area')
+        for page in pages:
+            title = page.find_element_by_class_name('news_tit').text
+            from_ = page.find_element_by_class_name('press').text
+            date_ = page.find_elements_by_css_selector('span.info')[-1].text.replace(".", "")
+            url = page.find_element_by_xpath('//*[@class="dsc_wrap"]/a').get_attribute('href')
+            category = '경제'
 
-                li_list = page.find_elements_by_tag_name('li')
-                for li in li_list:
-                    a = li.find_element_by_tag_name('a')
-                    url = a.get_attribute('href')
-                    id = url.split('aid=')[1]
-                    title = a.text
-                    from_ = li.find_element_by_class_name('writing').text
-                    if id in articles_meta.keys():  # 중복뉴스 제거
-                        continue
+            articles_meta[url] = {'title': title,
+                                'url': url,
+                                'date': date_,
+                                'from': from_,
+                                'class': category}
 
-                    pattern = re.compile("[[].*[]]")
-                    if len(pattern.findall(title)) >= 1:    # 인사|포토|속보|표 등 제거
-                        continue
+            # 작동 테스트
+            if test and len(articles_meta) >= 2:
+                with open(metapath, 'wb') as f:
+                    s = json.dumps(articles_meta, indent=4, ensure_ascii=False).encode('utf-8')
+                    f.write(s)
+                return articles_meta
 
-                    articles_meta[id] = {'title': title,
-                                        'url': url,
-                                        'date': date_,
-                                        'from': from_,
-                                        'class': category}
-
-                    # 작동 테스트
-                    if test and len(articles_meta) >= 2:
-                        with open(metapath, 'wb') as f:
-                            s = json.dumps(articles_meta, indent=4, ensure_ascii=False).encode('utf-8')
-                            f.write(s)
-                        return articles_meta
-
-            # print("{}: {} end".format(date_, name))
+        if page_num % 100 == 1:
+            time.sleep((0.2 + random.random()) * 3)
 
     with open(metapath, 'wb') as f:
         s = json.dumps(articles_meta, indent=4, ensure_ascii=False).encode('utf-8')
         f.write(s)
 
-    print("date={} | total_file={} | time spent: {:.3f} sec".format(date_, len(articles_meta), time.time() - s_t))
+    print("date={}~{} | total_file={} | time spent: {:.3f} sec".format(begin_d, end_d, len(articles_meta), time.time() - s_t))
 
     print('url scrapping done. {:.3f} sec'.format(time.time() - st_total))
 
